@@ -103,3 +103,18 @@ export const getStudyMaterial = async (): Promise<any> => {
   }
   return response.json();
 };
+
+export const getVideos = async (): Promise<any[]> => {
+  const response = await fetch(`${API_BASE_URL}/videos/`, {
+    method: 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error('Failed to fetch videos');
+  }
+
+  return response.json();
+};

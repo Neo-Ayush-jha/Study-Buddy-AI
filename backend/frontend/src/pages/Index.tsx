@@ -6,7 +6,7 @@ import { SourcesSidebar } from '@/components/SourcesSidebar';
 import { VideoSummaries } from '@/components/VideoSummaries';
 import { AudioDialogue } from '@/components/AudioDialogue';
 import { cn } from '@/lib/utils';
-import { chatApi } from '@/lib/api';
+import { chatApi, getVideos } from '@/lib/api';
 import { toast } from 'sonner';
 
 type ViewMode = 'chat' | 'video' | 'dialogue' | 'overview' | 'mindmap' | 'flashcards' | 'quiz' | 'notes';
@@ -43,16 +43,12 @@ const Index = () => {
   // Fetch videos from backend API
   useEffect(() => {
     const fetchVideos = async () => {
-      setIsLoading(true);
       try {
-        const response = await fetch('http://localhost:8000/api/videos/'); // Adjust the endpoint as needed
-        if (!response.ok) throw new Error('Failed to fetch videos');
-        const data = await response.json();
+        const data = await getVideos();
         setVideos(data);
       } catch (error) {
         console.error('Error fetching videos:', error);
-      } finally {
-        setIsLoading(false);
+        toast.error('Failed to load videos');
       }
     };
     fetchVideos();
