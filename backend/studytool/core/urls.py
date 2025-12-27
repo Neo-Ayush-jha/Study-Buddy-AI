@@ -23,4 +23,6 @@ urlpatterns = [
     
     # Audio Transcription
     path("transcribe/", transcribe, name="transcribe"),
+    
+    path("videos/", get_videos, name="get_videos"),
 ]

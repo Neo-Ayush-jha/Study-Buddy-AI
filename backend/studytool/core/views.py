@@ -14,6 +14,9 @@ from django.core.files.storage import default_storage
 from django.conf import settings
 import json
 
+# Import serializers from the newly created file
+from .serializers import DialogueSerializer, ChapterSerializer, VideoSerializer
+
 # ==================== PDF Upload & Processing ====================
 
 @api_view(['POST'])
@@ -63,7 +66,8 @@ def upload_chapter(req):
 def add_youtube_video(req):
     """Add YouTube video and extract transcript"""
     try:
-        youtube_url = req.data.get('url')
+        # Accept both 'url' and 'youtube_url' from frontend
+        youtube_url = req.data.get('url') or req.data.get('youtube_url')
         
         if not youtube_url:
             return Response(
@@ -412,3 +416,15 @@ def transcribe(req):
             {"error": str(e)},
             status=status.HTTP_500_INTERNAL_SERVER_ERROR
         )
+
+
+# ==================== Video Data Fetching ====================
+
+from .models import Video
+from .serializers import VideoSerializer
+
+@api_view(['GET'])
+def get_videos(request):
+    videos = Video.objects.all()  # Fetch all video records from the database
+    serializer = VideoSerializer(videos, many=True)  # Serialize the video data
+    return Response(serializer.data)  # Return the serialized data as a response

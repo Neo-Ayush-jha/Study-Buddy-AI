@@ -1,6 +1,7 @@
 import { useRef, useState, ChangeEvent } from 'react';
 import { FileText, Video, BookOpen, Plus, Upload, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
 import { uploadPdf, addYoutubeVideo } from '@/lib/api';
 import { toast } from 'sonner';
@@ -28,6 +29,10 @@ const sourceIcons = {
 export const SourcesSidebar = ({ sources, selectedSourceId, onSelectSource, onSourceAdded }: SourcesSidebarProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [isAddingVideo, setIsAddingVideo] = useState(false);
+  const [showAddVideoForm, setShowAddVideoForm] = useState(true);
+  const [videoUrl, setVideoUrl] = useState('');
+  const [videoTitle, setVideoTitle] = useState('');
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -77,6 +82,53 @@ export const SourcesSidebar = ({ sources, selectedSourceId, onSelectSource, onSo
     }
   };
 
+  const handleAddYoutubeLink = async () => {
+    const url = window.prompt('Enter the YouTube video URL to add:');
+    if (!url) return;
+    setIsAddingVideo(true);
+    try {
+      const uploaded = await addYoutubeVideo(url);
+      toast.success('YouTube video added successfully');
+      onSourceAdded?.({
+        id: String(Date.now()),
+        title: uploaded?.title || 'YouTube Video',
+        type: 'video',
+        description: url,
+      });
+    } catch (error) {
+      console.error('Failed to add YouTube video:', error);
+      toast.error('Failed to add video. Please try again.');
+    } finally {
+      setIsAddingVideo(false);
+    }
+  };
+
+  const handleSubmitVideoForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!videoUrl.trim()) {
+      toast.error('Please enter a YouTube URL');
+      return;
+    }
+    setIsAddingVideo(true);
+    try {
+      await addYoutubeVideo(videoUrl.trim(), videoTitle.trim() || undefined);
+      toast.success('YouTube video added successfully');
+      onSourceAdded?.({
+        id: String(Date.now()),
+        title: videoTitle.trim() || 'YouTube Video',
+        type: 'video',
+        description: videoUrl.trim(),
+      });
+      setVideoUrl('');
+      setVideoTitle('');
+    } catch (error) {
+      console.error('Failed to add YouTube video:', error);
+      toast.error('Failed to add video. Please try again.');
+    } finally {
+      setIsAddingVideo(false);
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-card border-r border-border">
       {/* Header */}
@@ -93,14 +145,45 @@ export const SourcesSidebar = ({ sources, selectedSourceId, onSelectSource, onSo
             >
               {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
             </Button>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <Plus className="w-4 h-4" />
-            </Button>
+              <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => setShowAddVideoForm(v => !v)}>
+                <Plus className="w-4 h-4" />
+              </Button>
           </div>
         </div>
         <p className="text-xs text-muted-foreground">
           {sources.length} source{sources.length !== 1 ? 's' : ''} loaded
         </p>
+        {showAddVideoForm && (
+          <form onSubmit={handleSubmitVideoForm} className="mt-3 space-y-2">
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-foreground">Add YouTube Video</p>
+              <Input
+                type="url"
+                placeholder="YouTube URL (https://www.youtube.com/watch?v=...)"
+                value={videoUrl}
+                onChange={(e) => setVideoUrl(e.target.value)}
+              />
+              <Input
+                type="text"
+                placeholder="Optional title"
+                value={videoTitle}
+                onChange={(e) => setVideoTitle(e.target.value)}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isAddingVideo}>
+                {isAddingVideo ? (
+                  <span className="inline-flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Adding...</span>
+                ) : (
+                  'Add Video'
+                )}
+              </Button>
+              <Button type="button" variant="secondary" onClick={handleAddYoutubeLink} disabled={isAddingVideo}>
+                Quick Add (Prompt)
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
 
       {/* Sources List */}

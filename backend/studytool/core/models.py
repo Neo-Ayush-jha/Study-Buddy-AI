@@ -13,7 +13,7 @@ class Video(models.Model):
     youtube_url = models.URLField()
     transcript = models.TextField(blank=True)
     title = models.CharField(max_length=200, blank=True)
-    video_id = models.CharField(max_length=20, unique=True)
+    video_id = models.CharField(max_length=20, unique=True, auto_created=True, blank=True)
     created_at = models.DateTimeField(default=timezone.now)
     
     def __str__(self):

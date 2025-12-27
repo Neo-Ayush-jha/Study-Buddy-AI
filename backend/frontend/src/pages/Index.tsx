@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MessageSquare, Video, Sparkles, Menu, X, Wand2, BookOpen, Zap, Brain, FileText, Grid, Play, Settings } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ChatInterface } from '@/components/ChatInterface';
@@ -30,28 +30,6 @@ const initialSources: Source[] = [
   },
 ];
 
-const sampleVideos = [
-  {
-    id: '1',
-    title: 'Understanding Supply and Demand Curves',
-    duration: '12:34',
-    topics: ['Supply', 'Demand', 'Equilibrium'],
-    watched: true,
-  },
-  {
-    id: '2',
-    title: 'Price Elasticity Explained Simply',
-    duration: '8:45',
-    topics: ['Elasticity', 'Pricing', 'Revenue'],
-  },
-  {
-    id: '3',
-    title: 'Market Structures Overview',
-    duration: '15:20',
-    topics: ['Competition', 'Monopoly', 'Oligopoly'],
-  },
-];
-
 const Index = () => {
   const [viewMode, setViewMode] = useState<ViewMode>('chat');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -60,6 +38,25 @@ const Index = () => {
   const [sources, setSources] = useState<Source[]>(initialSources);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [studioOpen, setStudioOpen] = useState(true);
+  const [videos, setVideos] = useState([]);
+
+  // Fetch videos from backend API
+  useEffect(() => {
+    const fetchVideos = async () => {
+      setIsLoading(true);
+      try {
+        const response = await fetch('http://localhost:8000/api/videos/'); // Adjust the endpoint as needed
+        if (!response.ok) throw new Error('Failed to fetch videos');
+        const data = await response.json();
+        setVideos(data);
+      } catch (error) {
+        console.error('Error fetching videos:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchVideos();
+  }, []);
 
   // Studio feature options
   const studioFeatures = [
@@ -112,7 +109,7 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="h-screen bg-background flex overflow-hidden">
       {/* Sidebar */}
       <aside className={cn(
         "w-72 shrink-0 transition-all duration-300 ease-in-out",
@@ -127,7 +124,7 @@ const Index = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Header */}
         <header className="h-16 border-b border-border flex items-center justify-between px-4 bg-card/50 backdrop-blur-sm">
           <div className="flex items-center gap-3">
@@ -205,7 +202,7 @@ const Index = () => {
             )}
             {viewMode === 'video' && (
               <VideoSummaries
-                videos={sampleVideos}
+                videos={videos}
                 onPlayVideo={handlePlayVideo}
               />
             )}
@@ -238,8 +235,8 @@ const Index = () => {
 
           {/* Studio Panel - Right Sidebar */}
           <aside className={cn(
-            "w-80 shrink-0 border-l border-border bg-card/50 overflow-hidden transition-all duration-300",
-            studioOpen ? "translate-x-0" : "translate-x-full absolute right-0 z-20"
+            "border-l border-border bg-card/50 overflow-hidden transition-all duration-300 shrink-0",
+            studioOpen ? "w-80" : "w-0 border-l-0"
           )}>
             <div className="h-full flex flex-col overflow-y-auto">
               {/* Studio Header */}

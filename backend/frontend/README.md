@@ -87,7 +87,3 @@ src/
 - `npm run lint` - Run ESLint
 
 ## Author
-
-**Aadit** - Full-Stack Developer
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
